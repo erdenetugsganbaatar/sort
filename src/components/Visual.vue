@@ -5,20 +5,31 @@ import { computeElementHeight } from '../utils/element';
 
 const { array } = defineProps(['array']);
 
+const arrayByOrder = () => {
+  return [...array].sort((a, b) => a.order - b.order).map(el => el.value);
+};
+
 const arrayWithHeight = computed(() => {
-  const min = Math.min(...array);
-  const max = Math.max(...array);
-  return array.map(value => ({
-    value,
-    height: computeElementHeight({ min, max, value }),
+  const arrayValues = array.map(el => el.value);
+  const min = Math.min(...arrayValues);
+  const max = Math.max(...arrayValues);
+  // 600 is width of container
+  const width = 600 / array.length;
+  return array.map(el => ({
+    ...el,
+    height: computeElementHeight({ min, max, value: el.value }),
+    style: {
+      width: `${width}px`,
+      left: `${width * el.order}px`,
+    },
   }));
 });
 </script>
 
 <template>
-  <p>{{ array }}</p>
+  <p>{{ arrayByOrder() }}</p>
   <div class="container">
-    <div class="element" v-for="(el, index) in arrayWithHeight" :style="`order: ${index}`">
+    <div class="element" v-for="el in arrayWithHeight" :style="el.style" :key="el.key">
       <div class="column" :style="`height: ${el.height}%`"></div>
       <span class="number">{{ el.value }}</span>
     </div>
@@ -31,16 +42,16 @@ const arrayWithHeight = computed(() => {
   height: 200px;
   display: flex;
   background-color: aliceblue;
-  > :not(:last-child) {
-    margin-right: 5px;
-  }
+  position: relative;
 }
 .element {
-  flex-grow: 1;
+  position: absolute;
+  transition: all 1s ease;
+  height: 100%;
+  left: 0;
   display: flex;
   justify-content: flex-end;
   flex-direction: column;
-  transition: order 1s ease;
   .column {
     background-color: green;
   }
